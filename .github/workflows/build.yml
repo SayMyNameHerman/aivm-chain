@@ -13,7 +13,7 @@ jobs:
     name: mini ${{ matrix.arch }} for ${{ matrix.targetos }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5.0.2
+      - uses: actions/setup-go@v6
         with:
           go-version: "stable"
           check-latest: true
