@@ -1,49 +1,49 @@
-> [!tip]
-> This repository has been archived and is no longer maintained.  
-> [Ignite ClI](https://github.com/ignite/cli) is now supports building minimal chains.  
-> Run `ignite s chain mini --minimal` to create a minimal chain.
+# AIVM Chain
 
-# Mini - A minimal Cosmos SDK chain
+An AI-native Layer-1 blockchain built on Cosmos SDK, implementing the core architectural concepts from the [AIVM Whitepaper](https://docs.chaingpt.org/ai-tools-and-applications/aivm-blockchain-whitepaper).
 
-This repository contains an example of a tiny, but working Cosmos SDK chain.
-It uses the least modules possible and is intended to be used as a starting point for building your own chain, without all the boilerplate that other tools generate. It is a simpler version of Cosmos SDK's [simapp](https://github.com/cosmos/cosmos-sdk/tree/main/simapp).
+## Overview
 
-This branch of `Minid` uses [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) v0.50.x.
+AIVM Chain demonstrates a working proof-of-concept of decentralized AI execution infrastructure, with a custom AI module implementing dual-path execution — the core innovation described in the AIVM whitepaper.
 
-> [!note]
-> Minid for [Cosmos SDK v0.50.x](https://github.com/cosmonity/chain-minimal/blob/v0.50.x)  
-> Minid for [Cosmos SDK v0.52.x](https://github.com/cosmonity/chain-minimal/blob/v0.52.x)  
-> Minid for [Cosmos SDK v2](https://github.com/cosmonity/chain-minimal/blob/v2). Learn what v2 was [in this comparison](https://gist.github.com/julienrbrt/6f737f275f784c5540dcbd64dfa982a5) and [talk](https://www.youtube.com/watch?v=Am6eDVRVZSw).  
+## Architecture
 
-## How to use
+### Dual-Path Execution Engine
+The core innovation: AI workloads are routed based on complexity.
 
-In addition to learn how to build a chain thanks to `minid`, you can as well directly run `minid`.
+- **ON_CHAIN**: Simple models execute directly on-chain with full transparency and consensus-based validation
+- **OFF_CHAIN**: Complex models (LLMs, computer vision) route to specialized execution nodes, with cryptographic proofs submitted back on-chain
 
-### Prerequisites
+### AI Module (`x/aimodule`)
+Custom Cosmos SDK module implementing:
+- **Model Registry**: Register and manage AI models on-chain with immutable hash verification
+- **Execution Router**: Dual-path routing logic based on model type
+- **Proof Verification**: SHA-256 based cryptographic proof submission and verification for off-chain executions
 
-* Install Go as described [here](https://go.dev/doc/install).
-* Add `GOPATH` to your `PATH`:
-  * `export PATH="$PATH:/usr/local/go/bin:$(/usr/local/go/bin/go env GOPATH)/bin"`
+## Technical Stack
+- Cosmos SDK v0.50
+- CometBFT consensus
+- Go 1.24
 
-You are all set!
+## Running Locally
+```bash
+# Build
+go build -o aivmd ./cmd/minid
 
-### Installation
+# Initialize
+./aivmd init mynode --chain-id aivm-1
+./aivmd keys add validator --keyring-backend test
+./aivmd genesis add-genesis-account validator 10000000000stake --keyring-backend test
+./aivmd genesis gentx validator 1000000000stake --chain-id aivm-1 --keyring-backend test
+./aivmd genesis collect-gentxs
 
-Install and run `minid`:
-
-```sh
-git clone git@github.com:cosmosregistry/chain-minimal.git
-cd chain-minimal
-make install # install the minid binary
-make init # initialize the chain
-minid start # start the chain
+# Start
+./aivmd start --minimum-gas-prices 0stake
 ```
 
-### Troubleshoot
-
-After running `make install`, verify `minid` has been installed by doing `which minid`.
-If `minid` is not found, verify that your `$PATH` is configured correctly.
-
-## Useful links
-
-* [Cosmos-SDK Documentation](https://docs.cosmos.network/)
+## Roadmap
+- [ ] Python AI execution engine (off-chain node)
+- [ ] gRPC bridge between Go chain and Python AI layer
+- [ ] Validator specialization (AI, Compute, Data validators)
+- [ ] REST API for model registration and execution requests
+- [ ] Token economics and staking mechanics
