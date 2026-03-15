@@ -12,7 +12,7 @@ jobs:
             arch: arm64
     name: mini ${{ matrix.arch }} for ${{ matrix.targetos }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v5.0.2
         with:
           go-version: "stable"
