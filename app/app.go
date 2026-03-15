@@ -29,6 +29,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	aikeeper "github.com/cosmosregistry/chain-minimal/x/aimodule/keeper"
+	aimodule "github.com/cosmosregistry/chain-minimal/x/aimodule/module"
+	aistoretypes "cosmossdk.io/store/types"
 
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	_ "cosmossdk.io/api/cosmos/tx/config/v1"          // import for side-effects
@@ -68,6 +71,9 @@ type MiniApp struct {
 	StakingKeeper         *stakingkeeper.Keeper
 	DistrKeeper           distrkeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
+
+	// AI module keeper
+	AIKeeper aikeeper.Keeper
 
 	// simulation manager
 	sm *module.SimulationManager
@@ -133,6 +139,12 @@ func NewMiniApp(
 	}
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
+
+	// Initialiser AI module
+	aiStoreKey := aistoretypes.NewKVStoreKey("aimodule")
+	app.AIKeeper = aikeeper.NewKeeper(app.appCodec, aiStoreKey, logger)
+	aiMod := aimodule.NewAppModule(app.AIKeeper)
+	_ = aiMod
 
 	// register streaming services
 	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
