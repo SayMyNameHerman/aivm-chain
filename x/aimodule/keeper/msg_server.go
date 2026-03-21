@@ -116,3 +116,51 @@ func generateExecId(modelId, inputHash string, height int64) string {
 	hash := sha256.Sum256([]byte(data))
 	return fmt.Sprintf("%x", hash[:16])
 }
+
+// UploadContract stores a new Starlark (Python) smart contract on-chain
+func (m MsgServer) UploadContract(ctx context.Context, owner, contractId, name, description, sourceCode string) (string, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	if contractId == "" {
+		// Auto-generate a contract ID from hash of source code + owner
+		hash := sha256.Sum256([]byte(owner + sourceCode))
+		contractId = fmt.Sprintf("contract-%x", hash[:8])
+	}
+
+	contract := types.SmartContract{
+		ContractId:  contractId,
+		Owner:       owner,
+		Name:        name,
+		Description: description,
+		SourceCode:  sourceCode,
+		Status:      types.ContractStatusActive,
+		CreatedAt:   time.Now().Unix(),
+	}
+
+	if err := m.StoreContract(sdkCtx, contract); err != nil {
+		return "", err
+	}
+
+	m.Logger().Info("Contract uploaded via MsgServer", "contract_id", contractId, "owner", owner, "name", name)
+	return contractId, nil
+}
+
+// ExecuteContract runs an uploaded Starlark smart contract on-chain
+func (m MsgServer) ExecuteContract(ctx context.Context, caller, contractId string, args map[string]string) (types.ContractExecution, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	execution, err := m.RunContract(sdkCtx, contractId, caller, args)
+	if err != nil {
+		return types.ContractExecution{}, fmt.Errorf("contract execution failed: %w", err)
+	}
+
+	m.Logger().Info("Contract executed via MsgServer",
+		"contract_id", contractId,
+		"caller", caller,
+		"result", execution.Result,
+		"ai_execs_triggered", len(execution.AIExecIds),
+	)
+
+	return execution, nil
+}
+

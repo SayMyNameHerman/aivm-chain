@@ -83,3 +83,38 @@ func (k Keeper) GetExecutionRequest(ctx sdk.Context, execId string) (types.Execu
 	json.Unmarshal(bz, &req)
 	return req, true
 }
+
+// --- SmartContract CRUD ---
+
+func (k Keeper) SetSmartContract(ctx sdk.Context, contract types.SmartContract) {
+	store := ctx.KVStore(k.storeKey)
+	key := []byte(fmt.Sprintf("contract:%s", contract.ContractId))
+	bz, _ := json.Marshal(contract)
+	store.Set(key, bz)
+}
+
+func (k Keeper) GetSmartContract(ctx sdk.Context, contractId string) (types.SmartContract, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := []byte(fmt.Sprintf("contract:%s", contractId))
+	bz := store.Get(key)
+	if bz == nil {
+		return types.SmartContract{}, false
+	}
+	var contract types.SmartContract
+	json.Unmarshal(bz, &contract)
+	return contract, true
+}
+
+func (k Keeper) GetAllSmartContracts(ctx sdk.Context) []types.SmartContract {
+	store := ctx.KVStore(k.storeKey)
+	iterator := storetypes.KVStorePrefixIterator(store, []byte("contract:"))
+	defer iterator.Close()
+	var contracts []types.SmartContract
+	for ; iterator.Valid(); iterator.Next() {
+		var c types.SmartContract
+		json.Unmarshal(iterator.Value(), &c)
+		contracts = append(contracts, c)
+	}
+	return contracts
+}
+

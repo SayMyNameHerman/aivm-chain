@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package aivm.engine.v1;
+
+option go_package = "github.com/cosmosregistry/chain-minimal/x/aimodule/types/engine";
+
+// AIEngine is the gRPC service provided by the Python off-chain execution node.
+service AIEngine {
+  // Execute an AI model given an input hash and data payload
+  rpc Execute(ExecutionRequest) returns (ExecutionResponse) {}
+}
+
+message ExecutionRequest {
+  string execution_id = 1;
+  string model_id = 2;
+  string input_hash = 3;
+  // A JSON payload containing the prompt or features
+  string input_data = 4; 
+}
+
+message ExecutionResponse {
+  string execution_id = 1;
+  string result_data = 2;   // The inference output
+  string output_hash = 3;   // Hash of the execution output
+  string proof = 4;         // The cryptographic proof of execution
+}

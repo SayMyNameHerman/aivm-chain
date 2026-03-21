@@ -76,6 +76,7 @@ type MiniApp struct {
 	AIKeeper aikeeper.Keeper
 
 	// simulation manager
+	mm *module.Manager
 	sm *module.SimulationManager
 }
 
@@ -144,7 +145,12 @@ func NewMiniApp(
 	aiStoreKey := aistoretypes.NewKVStoreKey("aimodule")
 	app.AIKeeper = aikeeper.NewKeeper(app.appCodec, aiStoreKey, logger)
 	aiMod := aimodule.NewAppModule(app.AIKeeper)
-	_ = aiMod
+
+	// manuelt register modulen i Manageren
+	app.mm = module.NewManager(
+		genutil.NewAppModule(app.AccountKeeper, app.StakingKeeper, app.App.BaseApp, app.txConfig),
+		aiMod,
+	)
 
 	// register streaming services
 	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {

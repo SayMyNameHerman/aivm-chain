@@ -26,6 +26,7 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	"github.com/cosmosregistry/chain-minimal/app"
+	aicli "github.com/cosmosregistry/chain-minimal/x/aimodule/cli"
 )
 
 func initRootCmd(rootCmd *cobra.Command, txConfig client.TxConfig, basicManager module.BasicManager) {
@@ -69,6 +70,7 @@ func queryCommand() *cobra.Command {
 		server.QueryBlocksCmd(),
 		authcmd.QueryTxCmd(),
 		server.QueryBlockResultsCmd(),
+		aicli.GetQueryCmd(),
 	)
 
 	return cmd
@@ -93,6 +95,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
 		authcmd.GetSimulateCmd(),
+		aicli.GetTxCmd(),
 	)
 
 	return cmd
