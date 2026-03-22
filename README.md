@@ -1,49 +1,73 @@
 # AIVM Chain
 
-An AI-native Layer-1 blockchain built on Cosmos SDK, implementing the core architectural concepts from the [AIVM Whitepaper](https://docs.chaingpt.org/ai-tools-and-applications/aivm-blockchain-whitepaper).
+A working proof-of-concept implementation of the [AIVM Whitepaper](https://docs.chaingpt.org/ai-tools-and-applications/aivm-blockchain-whitepaper) — an AI-native Layer-1 blockchain built on Cosmos SDK.
 
-## Overview
+## What this demonstrates
 
-AIVM Chain demonstrates a working proof-of-concept of decentralized AI execution infrastructure, with a custom AI module implementing dual-path execution — the core innovation described in the AIVM whitepaper.
+### 1. AI Smart Contracts (Starlark Engine)
+Python-like smart contracts with AI built-ins running in a deterministic sandbox:
+```python
+def main(args):
+    exec_id = request_ai("risk-model", args["input"])
+    record = get_execution(exec_id)
+    return "Result: " + record["status"]
+```
+- `request_ai(model_id, input)` — triggers on-chain or off-chain AI inference
+- `get_execution(exec_id)` — retrieves execution status and cryptographic proof
+
+### 2. Dual-Path Execution Engine
+- **ON_CHAIN**: Simple models run transparently in consensus
+- **OFF_CHAIN**: Complex models (LLMs) routed to specialized nodes with proof submission
+- Automatic routing based on model type and input complexity
+
+### 3. Cryptographic Proof Verification
+- SHA-256 execution proofs anchored on-chain
+- Tamper-evident output hashing
+- Manual verification confirmed: `PASS ✓`
+
+### 4. CLI Toolkit (`aivmd ai ...`)
+- `register-model` — define AI capabilities on-chain
+- `execute-contract` — run Starlark AI contracts
+- `submit-proof` — validator proof submission bridge
+
+### 5. gRPC Infrastructure
+Custom protobuf definitions for high-performance chain ↔ AI worker communication.
 
 ## Architecture
-
-### Dual-Path Execution Engine
-The core innovation: AI workloads are routed based on complexity.
-
-- **ON_CHAIN**: Simple models execute directly on-chain with full transparency and consensus-based validation
-- **OFF_CHAIN**: Complex models (LLMs, computer vision) route to specialized execution nodes, with cryptographic proofs submitted back on-chain
-
-### AI Module (`x/aimodule`)
-Custom Cosmos SDK module implementing:
-- **Model Registry**: Register and manage AI models on-chain with immutable hash verification
-- **Execution Router**: Dual-path routing logic based on model type
-- **Proof Verification**: SHA-256 based cryptographic proof submission and verification for off-chain executions
-
-## Technical Stack
-- Cosmos SDK v0.50
-- CometBFT consensus
-- Go 1.24
-
-## Running Locally
-```bash
-# Build
-go build -o aivmd ./cmd/minid
-
-# Initialize
-./aivmd init mynode --chain-id aivm-1
-./aivmd keys add validator --keyring-backend test
-./aivmd genesis add-genesis-account validator 10000000000stake --keyring-backend test
-./aivmd genesis gentx validator 1000000000stake --chain-id aivm-1 --keyring-backend test
-./aivmd genesis collect-gentxs
-
-# Start
-./aivmd start --minimum-gas-prices 0stake
+```
+┌─────────────────────────────────────┐
+│  Cosmos SDK Layer-1 Chain (Go)      │
+│  ├── x/aimodule (AI Module)         │
+│  │   ├── Starlark Contract Engine   │
+│  │   ├── Dual-Path Router           │
+│  │   ├── Model Registry             │
+│  │   └── Proof Verification         │
+│  └── CometBFT Consensus             │
+└────────────────┬────────────────────┘
+                 │ gRPC
+┌────────────────▼────────────────────┐
+│  Python AI Execution Engine         │
+│  ├── FastAPI Node (port 8000)       │
+│  ├── OnChain Executor (scikit-learn)│
+│  ├── OffChain Executor              │
+│  ├── Proof Generator/Verifier       │
+│  └── Chain Client (WebSocket)       │
+└─────────────────────────────────────┘
 ```
 
-## Roadmap
-- [ ] Python AI execution engine (off-chain node)
-- [ ] gRPC bridge between Go chain and Python AI layer
-- [ ] Validator specialization (AI, Compute, Data validators)
-- [ ] REST API for model registration and execution requests
-- [ ] Token economics and staking mechanics
+## Running the demo
+```bash
+# Terminal 1 — start AI execution node
+cd python && source venv/bin/activate
+python3 -m uvicorn aivm_engine.node:app --port 8000
+
+# Terminal 2 — run full end-to-end demo
+cd python && source venv/bin/activate
+python3 demo_full.py
+```
+
+## Tech stack
+- Cosmos SDK v0.50 + CometBFT
+- Go 1.24 + Starlark (go.starlark.net)
+- Python 3.12 + FastAPI + scikit-learn
+- gRPC + Protocol Buffers
